@@ -4,7 +4,7 @@ import { Response } from 'express';
 
 @Controller('spotify')
 export class SpotifyController {
-  constructor(private readonly spotifyService: SpotifyService) { }
+  constructor(private readonly spotifyService: SpotifyService) {}
 
   @Get('authenticate')
   authenticateSpotify() {
@@ -46,17 +46,19 @@ export class SpotifyController {
   async downloadFromSpotify(
     @Query('spotifyUrl') spotifyUrl: string,
     @Query('name') name: string,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     try {
-      if (!spotifyUrl) return res.send("Please provide spotifyUrl of the track")
-      if (!name) return res.send("Please provide name of the track")
+      if (!spotifyUrl)
+        return res.send('Please provide spotifyUrl of the track');
+      if (!name) return res.send('Please provide name of the track');
 
       const songObj = {
         spotifyUrl,
-        name
-      }
-      const downloadSong = await this.spotifyService.processDownloadForItem(songObj);
+        name,
+      };
+      const downloadSong =
+        await this.spotifyService.processDownloadForItem(songObj);
 
       res.set({
         'Content-Type': 'audio/mpeg',
@@ -66,7 +68,7 @@ export class SpotifyController {
 
       return res.status(HttpStatus.OK).send(downloadSong);
     } catch (error) {
-      console.error('spotifyController; downloadFromSpotify; ', error)
+      console.error('spotifyController; downloadFromSpotify; ', error);
       return { error: error.message };
     }
   }

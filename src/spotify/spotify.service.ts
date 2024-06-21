@@ -4,7 +4,8 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as dotenv from 'dotenv';
 import * as crypto from 'crypto';
-import Spotify from 'spotifydl-core'
+import Spotify from 'spotifydl-core';
+import axios from 'axios';
 dotenv.config();
 
 @Injectable()
@@ -96,26 +97,59 @@ export class SpotifyService {
         return response.data.access_token;
       return false;
     } catch (error) {
-      console.error('spotifyService; generateGenericAuthWithSpotify; ', error)
+      console.error('spotifyService; generateGenericAuthWithSpotify; ', error);
       return false;
     }
   }
 
-  async processDownloadForItem(item) {
+  // async processDownloadForItem(item) {
+  //   const spotify = new Spotify({
+  //     clientId: this.clientId,
+  //     clientSecret: this.clientSecret,
+  //   });
+
+  //   try {
+  //     const downloadSong = await spotify.downloadTrack(item.spotifyUrl);
+  //     return downloadSong;
+  //   } catch (error) {
+  //     console.error('spotifyService; processDownloadForItem; ', error);
+  //   }
+  // }
+
+  async processDownloadForItem(songObj: {
+    spotifyUrl: string;
+    name: string;
+  }): Promise<Buffer | undefined> {
     const spotify = new Spotify({
       clientId: this.clientId,
-      clientSecret: this.clientSecret
-    })
+      clientSecret: this.clientSecret,
+    });
 
     try {
-      const downloadSong = await spotify.downloadTrack(item.spotifyUrl)
-      return downloadSong;
+      const downloadSong: string = await spotify.downloadTrack(
+        songObj.spotifyUrl,
+      );
+      if (!downloadSong) {
+        console.error(
+          'processDownloadForItem; downloadTrack returned undefined or null',
+        );
+        return undefined;
+      }
+
+      // Convert the string to a Buffer
+      const downloadSongBuffer = Buffer.from(downloadSong, 'binary');
+      return downloadSongBuffer;
     } catch (error) {
-      console.error('spotifyService; processDownloadForItem; ', error)
+      console.error('spotifyService; processDownloadForItem; ', error);
+      return undefined;
     }
   }
 
-  async searchForSong(songName: string, offset: number = 0, limit: number = 10) {
+  async searchForSong(
+    songName: string,
+    offset: number = 0,
+    limit: number = 10,
+  ) {
     try {
       const accessToken = await this.generateGenericAuthWithSpotify();
 
@@ -149,7 +183,7 @@ export class SpotifyService {
         return 'No access token';
       }
     } catch (error) {
-      console.error('spotifyService; searchForSong; ', error)
-     }
+      console.error('spotifyService; searchForSong; ', error);
+    }
   }
 }
