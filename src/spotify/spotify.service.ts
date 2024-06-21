@@ -1,11 +1,14 @@
 // src/spotify/spotify.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as dotenv from 'dotenv';
 import * as crypto from 'crypto';
 import Spotify from 'spotifydl-core';
 import axios from 'axios';
+import { Readable } from 'stream';
+import * as zlib from 'zlib';
+
 dotenv.config();
 
 @Injectable()
@@ -101,21 +104,7 @@ export class SpotifyService {
       return false;
     }
   }
-
-  // async processDownloadForItem(item) {
-  //   const spotify = new Spotify({
-  //     clientId: this.clientId,
-  //     clientSecret: this.clientSecret,
-  //   });
-
-  //   try {
-  //     const downloadSong = await spotify.downloadTrack(item.spotifyUrl);
-  //     return downloadSong;
-  //   } catch (error) {
-  //     console.error('spotifyService; processDownloadForItem; ', error);
-  //   }
-  // }
-
+  //good code
   async processDownloadForItem(songObj: {
     spotifyUrl: string;
     name: string;

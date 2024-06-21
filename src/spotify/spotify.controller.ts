@@ -1,6 +1,7 @@
 import { Controller, Get, Query, Param, Res, HttpStatus } from '@nestjs/common';
 import { SpotifyService } from './spotify.service';
 import { Response } from 'express';
+import { Readable } from 'stream';
 
 @Controller('spotify')
 export class SpotifyController {
@@ -41,7 +42,7 @@ export class SpotifyController {
       return { error: error.message };
     }
   }
-
+  //good code
   @Get('downloadFromSpotify')
   async downloadFromSpotify(
     @Query('spotifyUrl') spotifyUrl: string,
