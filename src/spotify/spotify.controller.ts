@@ -58,7 +58,7 @@ export class SpotifyController {
         spotifyUrl,
         name,
       };
-      const downloadSong =
+      const downloadSong: Readable | any =
         await this.spotifyService.processDownloadForItem(songObj);
 
       res.set({
@@ -68,8 +68,23 @@ export class SpotifyController {
       });
 
       return res.status(HttpStatus.OK).send(downloadSong);
+      //downloadSong.pipe(res);
     } catch (error) {
       console.error('spotifyController; downloadFromSpotify; ', error);
+      return { error: error.message };
+    }
+  }
+
+  @Get('recommendation')
+  async getRecommendation(
+    @Query('genres') genres: string,
+    @Query('limit') limit: number,
+  ) {
+    // http://localhost:8000/spotify/recommendation?limit=1&genres=afrobeat
+    try {
+      //const genresArray = genres && genres.split(',');
+      return await this.spotifyService.getRecommendation(genres, limit);
+    } catch (error) {
       return { error: error.message };
     }
   }

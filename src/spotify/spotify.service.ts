@@ -5,14 +5,12 @@ import { firstValueFrom } from 'rxjs';
 import * as dotenv from 'dotenv';
 import * as crypto from 'crypto';
 import Spotify from 'spotifydl-core';
-import axios from 'axios';
-import { Readable } from 'stream';
-import * as zlib from 'zlib';
-
+import SpotifyWebApi from 'spotify-web-api-node';
 dotenv.config();
 
 @Injectable()
 export class SpotifyService {
+  private spotifyApi: SpotifyWebApi;
   private clientId: string;
   private clientSecret: string;
   private redirectUri: string;
@@ -29,6 +27,12 @@ export class SpotifyService {
     const state = crypto.randomBytes(16).toString('hex');
     this.stateStore.set(state, state);
     return state;
+  }
+
+  async getMe(accessToken: string): Promise<any> {
+    this.spotifyApi.setAccessToken(accessToken);
+    const me = await this.spotifyApi.getMe();
+    return me.body;
   }
 
   verifyState(state: string): boolean {
@@ -118,6 +122,7 @@ export class SpotifyService {
       const downloadSong: string = await spotify.downloadTrack(
         songObj.spotifyUrl,
       );
+
       if (!downloadSong) {
         console.error(
           'processDownloadForItem; downloadTrack returned undefined or null',
@@ -173,6 +178,43 @@ export class SpotifyService {
       }
     } catch (error) {
       console.error('spotifyService; searchForSong; ', error);
+    }
+  }
+
+  async getRecommendation(genres: string, limit: number = 30) {
+    try {
+      const accessToken = await this.generateGenericAuthWithSpotify();
+
+      if (accessToken) {
+        const searchUrlSpotify = `https://api.spotify.com/v1/recommendations?limit=${limit}&seed_genres=${genres}`;
+
+        const headers = {
+          Authorization: `Bearer ${accessToken}`,
+        };
+        const searchResponse = await firstValueFrom(
+          this.httpService.get(searchUrlSpotify, {
+            headers,
+          }),
+        );
+
+        if (
+          searchResponse.data &&
+          searchResponse.data.tracks &&
+          searchResponse.data.tracks.length > 0
+        ) {
+          searchResponse.data.tracks.forEach((track: any) => {
+            delete track.album.available_markets;
+            delete track.available_markets;
+          });
+          return searchResponse.data.tracks;
+        } else {
+          return 'No data found';
+        }
+      } else {
+        return 'No access token';
+      }
+    } catch (error) {
+      console.error('spotifyService; Song recommendation; ', error);
     }
   }
 }
